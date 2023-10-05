@@ -3,15 +3,18 @@ pragma solidity ^0.8.19;
 
 contract Vote {
     //state Variables
-    address private admin;
-    uint256 private campaignId;
-    address[] private votersList;
-    Campaign[] private allCampaigns;
+    address admin;
+    uint256 campaignId;
+    address[] votersList;
+    Campaign[] allCampaigns;
 
 
     //events
     event Voted(address indexed voter, uint256 indexed campaignId, uint256 indexed time);
+    event Registered(address indexed voter, uint256 indexed time);
     event CampaignCreated(address indexed campaignCreator, uint256 indexed campaignId, uint256 indexed time);
+    event CandidateRegistered(address indexed candidate, uint256 indexed campaignId, uint256 indexed time);
+    event adminChanged(address indexed newAdmin, address indexed oldAdmin, uint256 indexed time);
 
 
     struct Campaign{
@@ -75,6 +78,8 @@ contract Vote {
     function registerVoter(address _voter) public onlyAdmin{
         voters[_voter] = true;
         votersList.push(_voter);
+
+        emit Registered(_voter, block.timestamp);
     }
 
     /**
@@ -95,7 +100,10 @@ contract Vote {
 
         emit CampaignCreated(msg.sender, userCampaignId, block.timestamp);
     }
-
+    
+    /**
+     * @dev function to register candidate for a campaign
+     */
     function registerCandidate(address _candidate, string memory _name, uint256 _campaignId) public campaignIdcheck(_campaignId){
         require(campaigns[_campaignId].startTime > block.timestamp, "Registration period is over");
         require(campaigns[_campaignId].campaignCreator == msg.sender, "Not Creator");
@@ -104,6 +112,8 @@ contract Vote {
         candidates[_candidate][_campaignId] = Candidate(_candidate, _name, _campaignId, 0, _voters);
         candidateRegistered[_candidate][_campaignId] = true;
         campaigns[_campaignId].candidate.push(_candidate);
+
+        emit CandidateRegistered(_candidate, _campaignId, block.timestamp);
     }
        
     /**
@@ -126,6 +136,8 @@ contract Vote {
      */
     function changeAdmin(address _newAdmin) public onlyAdmin{
         admin = _newAdmin;
+
+    emit adminChanged(_newAdmin, msg.sender, block.timestamp);
     }
 
     /**
@@ -178,6 +190,9 @@ contract Vote {
         return allCampaignList;
     }
 
+    /**
+     * @dev function to get all candidates of a campaign
+     */
     function allCampaignCandidate(uint256 _campaignId) public view returns(address[] memory){
         return campaigns[_campaignId].candidate;
     }
@@ -189,16 +204,24 @@ contract Vote {
         return campaigns[_campaignId].voteCount;
     }
 
+    /**
+     * @dev function to get candidate details
+     */
     function getCandidate(uint256 _campaignId, address _candidate) public view campaignIdcheck(_campaignId) returns(Candidate memory){
         return candidates[_candidate][_campaignId];
-
     }
 
+    /**
+     * @dev function to get a candidate vote count
+     */
     function getCandidateVote(uint256 _campaignId, address _candidate) public view campaignIdcheck(_campaignId) returns(uint256){
         return candidates[_candidate][_campaignId].voteAccumulated;
     }
-
-    function getCampaignWinner(uint256 _campaignId) public view returns(address winner, uint256 voteCount){
+    
+    /**
+     * @dev function to get campaign winner + vote count
+     */
+    function getCampaignWinner(uint256 _campaignId) public view campaignIdcheck(_campaignId) returns(address winner, uint256 voteCount){
         address[] memory allCandidates = allCampaignCandidate(_campaignId);
         uint256 highestVoteCount = 0;
         
