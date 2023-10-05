@@ -18,6 +18,7 @@ contract Vote {
         address campaignCreator;
         string name;
         string campaignDescription;
+        uint256 startTime;
         uint256 duration;
         uint voteCount;
         address[] candidate;
@@ -64,7 +65,6 @@ contract Vote {
     mapping(uint256 => Campaign) private campaigns;
     mapping(address => mapping(uint256 => Candidate)) candidates;
     mapping(address => mapping(uint256 => bool)) candidateRegistered;
-    // mapping(uint256 => address[]) allCampaignCandidate;
     mapping(address => uint256[]) private allUserCampaings;
     mapping(uint256 => address[]) private allCampaignVoters;
     mapping(address => mapping(uint256 => bool)) private hasVoted;
@@ -80,15 +80,16 @@ contract Vote {
     /**
      * @dev function for creating campaign
      */
-    function createCampaign(string memory _CampaingName, string memory _campaignDescription, uint256 _duration) votersAndAdmin public{
+    function createCampaign(string memory _CampaingName, string memory _campaignDescription,uint256 _startTime, uint256 _duration) votersAndAdmin public{
         bytes memory strBytes = bytes(_CampaingName);
         require(strBytes.length > 0, "Invalid CampaingName");
         require(_duration > 0, "Invalid duration");
 
         uint256 userCampaignId = campaignId;
         uint256 campaignDuration = block.timestamp + _duration;
+        uint256 campaignStartTime = block.timestamp + _startTime;
         address[] memory candidate;
-        campaigns[userCampaignId] = Campaign(msg.sender, _CampaingName,_campaignDescription, campaignDuration, 0, candidate);
+        campaigns[userCampaignId] = Campaign(msg.sender, _CampaingName,_campaignDescription, campaignStartTime, campaignDuration, 0, candidate);
         allUserCampaings[msg.sender].push(userCampaignId);
         campaignId ++;
 
@@ -96,13 +97,13 @@ contract Vote {
     }
 
     function registerCandidate(address _candidate, string memory _name, uint256 _campaignId) public campaignIdcheck(_campaignId){
+        require(campaigns[_campaignId].startTime > block.timestamp, "Registration period is over");
         require(campaigns[_campaignId].campaignCreator == msg.sender, "Not Creator");
         require(candidateRegistered[_candidate][_campaignId] == false, "Registered Candidate");
         address[] memory _voters;
         candidates[_candidate][_campaignId] = Candidate(_candidate, _name, _campaignId, 0, _voters);
         candidateRegistered[_candidate][_campaignId] = true;
         campaigns[_campaignId].candidate.push(_candidate);
-        //allCampaignCandidate[_campaignId].push(_candidate);
     }
        
     /**
@@ -168,7 +169,13 @@ contract Vote {
      * @dev function to get all campaigns
      */
     function allCampaign() public view votersAndAdmin returns(Campaign[] memory){
-        return allCampaigns;
+        Campaign[] memory allCampaignList = new Campaign[](campaignId);
+
+        for (uint256 i = 0; i < campaignId; i++) {
+            allCampaignList[i] = campaigns[i];
+        }
+
+        return allCampaignList;
     }
 
     function allCampaignCandidate(uint256 _campaignId) public view returns(address[] memory){
