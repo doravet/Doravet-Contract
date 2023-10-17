@@ -150,7 +150,7 @@ contract Vote {
         require(votersRegistered[msg.sender][_campaignId] == true, "NOT REGISTERED VOTER");
         require(hasVoted[msg.sender][_campaignId] == false, "ALREADY VOTED!!");
         require(campaigns[_campaignId].duration > block.timestamp, "Voting period is over");
-        require(campaigns[_campaignId].startTime > block.timestamp, "Voting Not started");
+        require(campaigns[_campaignId].startTime < block.timestamp, "Voting Not started");
         
         campaigns[_campaignId].voteCount += 1;
         candidates[_candidate][_campaignId].voteAccumulated +=1;
@@ -223,8 +223,15 @@ contract Vote {
     /**
      * @dev function to get all candidates of a campaign
      */
-    function allCampaignCandidate(uint256 _campaignId) public view returns(address[] memory){
+    function allCampaignCandidate(uint256 _campaignId) public view campaignIdcheck(_campaignId) returns(address[] memory){
         return campaigns[_campaignId].candidate;
+    }
+
+    /**
+     * @dev function to display voting startTime
+     */
+    function votingStartTime(uint256 _campaignId) public view campaignIdcheck(_campaignId) returns(uint256){
+        return campaigns[_campaignId].startTime;
     }
 
     /**

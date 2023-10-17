@@ -38,6 +38,8 @@ async function main() {
   const regvoters = await voteContract.connect(member1).registerVoter(allvoters, 0);
 
   //vote
+  await ethers.provider.send("evm_increaseTime", [60 * 60 * 24 * 2]); //2days
+  
   const vote = await voteContract.connect(member2).vote(0, member2.address);
   await voteContract.connect(member3).vote(0, member2.address);
   await voteContract.connect(member5).vote(0, member2.address);
