@@ -150,6 +150,7 @@ contract Vote {
         require(votersRegistered[msg.sender][_campaignId] == true, "NOT REGISTERED VOTER");
         require(hasVoted[msg.sender][_campaignId] == false, "ALREADY VOTED!!");
         require(campaigns[_campaignId].duration > block.timestamp, "Voting period is over");
+        require(campaigns[_campaignId].startTime > block.timestamp, "Voting Not started");
         
         campaigns[_campaignId].voteCount += 1;
         candidates[_candidate][_campaignId].voteAccumulated +=1;
