@@ -5,7 +5,6 @@ contract Vote {
     //state Variables
     address admin;
     uint256 campaignId;
-    address[] votersList;
     Campaign[] allCampaigns;
 
 
@@ -171,7 +170,7 @@ contract Vote {
     }
 
     /**
-     * @dev function to return all voters
+     * @dev function to return all registered voters
      */
     function getVoters(uint256 _campaignId) public view returns(address[] memory){
         return campaigns[_campaignId].voter;
