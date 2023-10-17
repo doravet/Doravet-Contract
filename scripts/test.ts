@@ -12,16 +12,13 @@ async function main() {
 
   ///-----------------interact----------//
   const voteContract = await ethers.getContractAt("Vote", Vote.target);
-  console.log("voteContract", voteContract);
+  //console.log("voteContract", voteContract);
 
-  //register voters
-  const regvoters = await voteContract.registerVoter(member1.address);
-  await voteContract.registerVoter(member2.address);
-  await voteContract.registerVoter(member3.address);
-  await voteContract.registerVoter(member4.address);
-  await voteContract.registerVoter(member5.address);
-  await voteContract.registerVoter(member6.address);
-  await voteContract.registerVoter(member7.address);
+
+  //join
+  const join = await voteContract.connect(member1).join("hizick27@mail", "isaac", "hizick", "isaac coporation");
+  await join.wait();
+  console.log("join", join);
 
   //create campaign
   const startTime = 60 * 60 * 24 * 1; // days
@@ -36,14 +33,19 @@ async function main() {
                         await voteContract.connect(member1).registerCandidate(member3.address, "Candidate3", 0);
   console.log("addcandidates", addcandidates);
 
+  //register voters
+  const allvoters = [member1.address, member2.address, member3.address, member4.address, member5.address, member6.address, member7.address]
+  const regvoters = await voteContract.connect(member1).registerVoter(allvoters, 0);
+
   //vote
   const vote = await voteContract.connect(member2).vote(0, member2.address);
   await voteContract.connect(member3).vote(0, member2.address);
+  await voteContract.connect(member5).vote(0, member2.address);
   await voteContract.connect(member4).vote(0, member3.address);
   console.log("vote", vote);
 
 //get Voters
-  const voters = await voteContract.getVoters();
+  const voters = await voteContract.getVoters(0);
   console.log("voters", voters);
 
 //get campaingn voters
