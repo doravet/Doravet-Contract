@@ -13,15 +13,11 @@ const config: HardhatUserConfig = {
     }
   },
   networks: {
-    polygon_mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env.PRIVATE_KEY as string]
+    Klatyn_Baobab: {
+      url: "https://api.baobab.klaytn.net:8651",
+      accounts: [process.env.PRIVATE_KEY2 as string]
     }
   },
-  etherscan: {
-    apiKey: process.env.POLYGON_API_KEY
-  },
-  
 };
 
 export default config;
